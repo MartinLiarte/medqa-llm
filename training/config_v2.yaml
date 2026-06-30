@@ -1,0 +1,51 @@
+model:
+  base_model: "meta-llama/Llama-3.3-70B-Instruct"
+  load_in_4bit: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_use_double_quant: true
+
+lora:
+  r: 16                    # rank=32 causa OOM con TRL 1.7 entropy computation en 44GB GPUs
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "v_proj"
+    - "k_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+training:
+  num_train_epochs: 3
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 16   # effective batch = 1*16*4GPUs = 64
+  learning_rate: 5e-5               # más conservador que v1 (1e-4)
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.03
+  max_seq_length: 1024              # TRL 1.7 _chunk entropy OOM con 2048 en 44GB GPUs
+  fp16: false
+  bf16: true
+  gradient_checkpointing: true
+  logging_steps: 10
+  eval_steps: 200
+  save_steps: 200                   # más frecuente para no perder checkpoints
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  report_to: "wandb"
+  run_name: "llama33-70b-medqa-qlora-r32-v2"
+
+paths:
+  data_dir: "${HOME}/W/data/processed/medqa_only"
+  output_dir: "/tmp/medrag_checkpoints_v2"
+  logging_dir: "/tmp/medrag_logs_v2"
+
+wandb:
+  project: "medrag"
+  entity: null

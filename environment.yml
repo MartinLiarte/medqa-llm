@@ -1,0 +1,39 @@
+name: medrag
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=12.6
+  - pip:
+    - transformers>=4.45.0
+    - peft>=0.13.0
+    - accelerate>=0.34.0
+    - bitsandbytes>=0.44.0
+    - trl>=0.11.0
+    - datasets>=2.20.0
+    - deepspeed>=0.15.0
+    - langchain>=0.3.0
+    - langchain-community>=0.3.0
+    - faiss-gpu
+    - sentence-transformers>=3.0.0
+    - ragas>=0.1.0
+    - fastapi>=0.115.0
+    - uvicorn[standard]>=0.30.0
+    - vllm>=0.6.0
+    - wandb>=0.18.0
+    - openai>=1.50.0
+    - huggingface-hub>=0.25.0
+    - scipy
+    - numpy
+    - pandas
+    - tqdm
+    - pyyaml
+    - jupyter
+    - ipykernel
