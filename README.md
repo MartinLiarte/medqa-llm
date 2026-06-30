@@ -45,7 +45,7 @@ Notably, Xiong et al. report that RAG *decreases* GPT-4 accuracy (83.97% → 82.
 │         ▼                         │                      │
 │  [QLoRA Fine-tuning]         [BGE-large Embeddings]      │
 │  Llama 3.3 70B               BAAI/bge-large-en-v1.5      │
-│  4× NVIDIA L40S (46GB)            │                      │
+│  4× NVIDIA L40S (48GB)            │                      │
 │  DeepSpeed ZeRO-2            [FAISS Index]               │
 │         │                         │                      │
 │         ▼                         │ top-k retrieval      │
@@ -275,4 +275,4 @@ Training runs on the UPV DSIC cluster (tensor.dsic.upv.es) with 4× NVIDIA L40S 
 [![W&B](https://img.shields.io/badge/Weights_%26_Biases-FFBE00?logo=WeightsAndBiases&logoColor=white)](https://wandb.ai)
 [![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-FFD21E)](https://huggingface.co)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.12-EE4C2C?logo=pytorch)](https://pytorch.org)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.1.0-EE4C2C?logo=pytorch)](https://pytorch.org)
