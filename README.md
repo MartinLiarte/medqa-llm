@@ -270,7 +270,7 @@ The model learned the USMLE answer format in < 1 epoch. Stable grad_norm (0.17�
 
 Built by **Martín Liarte** — CS student at UPV (Valencia), specializing in Computing & AI.
 
-Training runs on the UPV DSIC cluster (tensor.dsic.upv.es) with 4× NVIDIA L40S GPUs (46GB VRAM each).
+Training runs on the UPV DSIC cluster (tensor.dsic.upv.es) with 4× NVIDIA L40S GPUs (48GB VRAM each).
 
 [![W&B](https://img.shields.io/badge/Weights_%26_Biases-FFBE00?logo=WeightsAndBiases&logoColor=white)](https://wandb.ai)
 [![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-FFD21E)](https://huggingface.co)
