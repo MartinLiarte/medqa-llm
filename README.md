@@ -279,7 +279,7 @@ Built by **Martín Liarte** — CS student at UPV (Valencia), specializing in Co
 
 Training runs on the UPV DSIC cluster (tensor.dsic.upv.es) with 4× NVIDIA L40S GPUs (48GB VRAM each).
 
-[![W&B](https://img.shields.io/badge/Weights_%26_Biases-FFBE00?logo=WeightsAndBiases&logoColor=white)](https://wandb.ai)
+[![W&B](https://img.shields.io/badge/Weights_%26_Biases-FFBE00?logo=WeightsAndBiases&logoColor=white)](https://wandb.ai/martinliartesanchez-universitat-polit-cnica-de-val-ncia/medrag)
 [![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-FFD21E)](https://huggingface.co)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue?logo=python)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.1.0-EE4C2C?logo=pytorch)](https://pytorch.org)
