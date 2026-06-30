@@ -123,6 +123,7 @@ rag:
 
 ```
 medrag/
+├── LICENSE                      # MIT
 ├── environment.yml              # Conda environment (Python 3.11, CUDA 12.1)
 ├── requirements.txt             # Pip dependencies
 ├── data/
@@ -149,7 +150,10 @@ medrag/
     ├── evaluate_rag.py          # Accuracy evaluation with RAG augmentation
     ├── job_evaluate_base.sh     # SLURM job — base model eval (2 GPUs, 7h)
     ├── job_evaluate_rag.sh      # SLURM job — RAG eval (2 GPUs, 4h)
-    └── results/                 # JSON results for each experiment run
+    └── results/                 # Evaluation results (raw per-question predictions)
+        ├── base.json            # Base model — 74.45%
+        ├── finetuned.json       # Fine-tuned (v2) — 78.48%
+        └── rag.json             # Fine-tuned + RAG — 80.99%
 ```
 
 ---
