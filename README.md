@@ -21,8 +21,8 @@ Evaluated on the MedQA-US test set (1,273 questions, 4-option USMLE format). GPT
 | GPT-4 — Xiong et al. (ACL 2024) | 83.97% |
 | **Llama 3.3 70B + QLoRA + RAG (ours)** | **80.99%** |
 | Llama 3.3 70B + QLoRA fine-tuning only | 78.48% |
-| GPT-3.5 — Xiong et al. (ACL 2024) | 65.04% |
 | Llama 3.3 70B base (4-bit, no fine-tune) | 74.45% |
+| GPT-3.5 — Xiong et al. (ACL 2024) | 65.04% |
 | Llama 2 70B — Xiong et al. (ACL 2024) | 47.84% |
 
 Our open-source pipeline reaches **80.99%**, within 3 points of GPT-4 (83.97%). Each component contributes measurably:
@@ -145,6 +145,8 @@ medrag/
 └── evaluation/
     ├── evaluate.py              # Accuracy evaluation (base model or fine-tuned)
     ├── evaluate_rag.py          # Accuracy evaluation with RAG augmentation
+    ├── job_evaluate_base.sh     # SLURM job — base model eval (2 GPUs, 7h)
+    ├── job_evaluate_rag.sh      # SLURM job — RAG eval (2 GPUs, 4h)
     └── results/                 # JSON results for each experiment run
 ```
 
@@ -193,16 +195,19 @@ torchrun --nproc_per_node=4 training/train.py --config training/config_v2.yaml
 ```bash
 # Base model (no fine-tuning)
 python evaluation/evaluate.py --no_lora \
-    --test_data path/to/test.jsonl --output results/base.json
+    --test_data $HOME/W/data/processed/medqa/test.jsonl \
+    --output evaluation/results/base.json
 
 # Fine-tuned model
 python evaluation/evaluate.py --model_path path/to/checkpoint \
-    --test_data path/to/test.jsonl --output results/finetuned.json
+    --test_data $HOME/W/data/processed/medqa/test.jsonl \
+    --output evaluation/results/finetuned.json
 
 # Fine-tuned + RAG
 python evaluation/evaluate_rag.py --model_path path/to/checkpoint \
-    --vectorstore path/to/vectorstore --top_k 3 \
-    --test_data path/to/test.jsonl --output results/rag.json
+    --vectorstore $HOME/W/vectorstore --top_k 3 \
+    --test_data $HOME/W/data/processed/medqa/test.jsonl \
+    --output evaluation/results/rag.json
 ```
 
 ### 6. Serve
@@ -240,7 +245,7 @@ Llama 3.3 70B in bfloat16 requires ~140GB of VRAM just for weights — far beyon
 
 2. **LoRA (Low-Rank Adaptation)**: instead of updating all 70B parameters, we inject trainable rank-16 matrices into every projection layer (`q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`). The base model is frozen; only ~400M parameters are trained. The adapters (412MB) are merged or loaded at inference time.
 
-This combination makes it possible to fine-tune a 70B model on 4× 46GB GPUs with an effective batch size of 64.
+This combination makes it possible to fine-tune a 70B model on 4× 48GB GPUs with an effective batch size of 64.
 
 ### Why DeepSpeed ZeRO-2?
 
