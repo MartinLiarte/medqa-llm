@@ -1,28 +1,37 @@
 # MedRAG — Medical QA with Fine-tuned LLM + RAG
 
-> Fine-tuning Llama 3.3 70B on medical exam data (USMLE) with QLoRA + Retrieval-Augmented Generation to outperform GPT-4o on medical question answering.
+> Fine-tuning Llama 3.3 70B on USMLE medical exam data with QLoRA + RAG over medical textbooks — approaches GPT-4 performance using only open-source models and public data.
 
 ---
 
 ## Overview
 
-This project fine-tunes **Llama 3.3 70B** using **QLoRA** on the MedQA-USMLE dataset and augments it with a **FAISS-based RAG pipeline** over PubMed literature. The system is evaluated rigorously against GPT-4o as a baseline using reproducible metrics.
+This project fine-tunes **Llama 3.3 70B** using **QLoRA** on the MedQA-USMLE dataset and augments inference with a **FAISS-based RAG pipeline** over 18 medical textbooks. Each component is evaluated in isolation to produce a rigorous ablation study.
 
-**Hypothesis**: A domain-specialized open-source 70B model augmented with RAG can match proprietary models like Claude 3 Sonnet (~80-82%) on USMLE-style medical questions, using only public models and data.
+**Hypothesis**: An open-source 70B model with QLoRA fine-tuning + RAG can approach GPT-4 performance on MedQA-US using only public models and data.
 
 ---
 
 ## Results
 
-| Model | MedQA Accuracy | Delta |
-|---|---|---|
-| GPT-4o | ~87% | — |
-| Claude 3 Sonnet | ~80-82% | — |
-| **Llama 3.3 70B + QLoRA + RAG (ours)** | **80.99%** | — |
-| Llama 3.3 70B + QLoRA fine-tuning only | 78.48% | -2.51% |
-| Llama 3.3 70B base (4-bit, no fine-tune) | 74.45% | -6.54% |
+Evaluated on the MedQA-US test set (1,273 questions, 4-option USMLE format). GPT-4 reference from Xiong et al. (ACL 2024).
 
-Our open-source pipeline matches Claude 3 Sonnet on MedQA-USMLE. Each component contributes measurably: QLoRA fine-tuning teaches the USMLE answer format (+4.03%), RAG adds factual grounding from 18 medical textbooks at inference time (+2.51%).
+| Model | MedQA-US Accuracy |
+|---|---|
+| GPT-4 — Xiong et al. (ACL 2024) | 83.97% |
+| **Llama 3.3 70B + QLoRA + RAG (ours)** | **80.99%** |
+| Llama 3.3 70B + QLoRA fine-tuning only | 78.48% |
+| GPT-3.5 — Xiong et al. (ACL 2024) | 65.04% |
+| Llama 3.3 70B base (4-bit, no fine-tune) | 74.45% |
+| Llama 2 70B — Xiong et al. (ACL 2024) | 47.84% |
+
+Our open-source pipeline reaches **80.99%**, within 3 points of GPT-4 (83.97%). Each component contributes measurably:
+- **QLoRA fine-tuning**: +4.03% (teaches USMLE answer format)
+- **RAG over medical textbooks**: +2.51% (adds factual grounding at inference time)
+
+Notably, Xiong et al. report that RAG *decreases* GPT-4 accuracy (83.97% → 82.80%) due to context distraction, whereas our fine-tuned model *benefits* from retrieved context (+2.51%) — suggesting fine-tuning improves the model's ability to integrate external knowledge.
+
+> Reference: Xiong et al., *Benchmarking Retrieval-Augmented Generation for Medicine*, ACL 2024. Table 6, Section 5.1. [arxiv:2402.13178](https://arxiv.org/abs/2402.13178)
 
 ---
 
@@ -105,11 +114,17 @@ lora:
   target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
 
 training:
-  effective_batch_size: 64  # 2 per device × 8 grad accum × 4 GPUs
-  learning_rate: 1e-4
+  effective_batch_size: 64  # 1 per device × 16 grad accum × 4 GPUs
+  learning_rate: 5e-5
   scheduler: cosine
   epochs: 3
-  max_seq_length: 2048
+  max_seq_length: 1024     # MedQA max 957 tokens — 0% truncation
+
+rag:
+  corpus: MedRAG/textbooks  # 125,847 chunks from 18 medical textbooks
+  embeddings: BAAI/bge-large-en-v1.5
+  index: FAISS IndexFlatIP (cosine similarity)
+  top_k: 3
 ```
 
 ---
