@@ -5,7 +5,7 @@ then augment the prompt before generation.
 Usage:
     from rag.pipeline import MedRAGPipeline
     rag = MedRAGPipeline(vectorstore_dir="~/W/vectorstore")
-    augmented_prompt = rag.build_prompt(question_text, tokenizer)
+    augmented_prompt = rag.build_prompt({"input": question_text}, tokenizer)
 """
 
 import json

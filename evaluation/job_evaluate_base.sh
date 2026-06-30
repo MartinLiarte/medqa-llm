@@ -22,7 +22,7 @@ mkdir -p logs evaluation/results
 python evaluation/evaluate.py \
     --base_model meta-llama/Llama-3.3-70B-Instruct \
     --no_lora \
-    --test_data $HOME/W/data/processed/combined/test.jsonl \
+    --test_data $HOME/W/data/processed/medqa/test.jsonl \
     --output evaluation/results/base_model.json \
     --batch_size 4 \
     --max_new_tokens 128

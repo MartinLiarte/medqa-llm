@@ -24,7 +24,7 @@ python evaluation/evaluate_rag.py \
     --model_path $HOME/W/checkpoints/medrag_v2/final \
     --vectorstore $HOME/W/vectorstore \
     --top_k 3 \
-    --test_data $HOME/W/data/processed/combined/test.jsonl \
+    --test_data $HOME/W/data/processed/medqa/test.jsonl \
     --output evaluation/results/rag_v2_top3.json \
     --batch_size 2 \
     --max_new_tokens 256
