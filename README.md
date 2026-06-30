@@ -215,8 +215,8 @@ python evaluation/evaluate_rag.py --model_path path/to/checkpoint \
 ```bash
 PYTHONPATH=$(pwd) \
 BASE_MODEL=meta-llama/Llama-3.3-70B-Instruct \
-ADAPTER_PATH=path/to/checkpoint \
-VECTORSTORE=path/to/vectorstore \
+ADAPTER_PATH=$HOME/W/checkpoints/medrag_v2/final \
+VECTORSTORE=$HOME/W/vectorstore \
 uvicorn serving.api:app --host 0.0.0.0 --port 8000
 # API docs at http://localhost:8000/docs
 ```
