@@ -128,12 +128,14 @@ medrag/
 ├── data/
 │   ├── download.py              # Download MedQA from HuggingFace
 │   ├── preprocess.py            # Format for instruction tuning (Llama chat template)
+│   ├── job_download.sh          # SLURM job — download + preprocess (CPU, ~2h)
 │   ├── build_vectorstore.py     # Build FAISS index from MedRAG/textbooks with BGE
 │   └── job_build_vectorstore.sh # SLURM job (1 GPU, ~30min)
 ├── training/
 │   ├── train.py                 # QLoRA fine-tuning with SFTTrainer + DeepSpeed
 │   ├── config_v2.yaml           # Final hyperparameters (lr=5e-5, rank=16)
-│   └── job_train_v2.sh          # SLURM job (4 GPUs, 48h, cola long)
+│   ├── job_train_v2.sh          # SLURM job (4 GPUs, 48h, cola long)
+│   └── job_test.sh              # Smoke test — verify GPUs, packages, model access
 ├── rag/
 │   ├── __init__.py
 │   └── pipeline.py              # FAISS retriever + prompt augmentation

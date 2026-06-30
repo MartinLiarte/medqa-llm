@@ -5,8 +5,8 @@ Usage:
     python evaluation/evaluate_rag.py \
         --model_path ~/W/checkpoints/medrag_v2/final \
         --vectorstore ~/W/vectorstore \
-        --test_data ~/W/data/processed/combined/test.jsonl \
-        --output evaluation/results/rag_v2.json
+        --test_data ~/W/data/processed/medqa/test.jsonl \
+        --output evaluation/results/rag.json
 """
 
 import os

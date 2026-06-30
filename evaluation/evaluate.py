@@ -3,9 +3,9 @@ Evaluate fine-tuned Llama 3.3 70B on MedQA-USMLE test set.
 
 Usage:
     python evaluation/evaluate.py \
-        --model_path ~/W/checkpoints/medrag/final \
-        --test_data ~/W/data/processed/combined/test.jsonl \
-        --output evaluation/results/run1.json
+        --model_path ~/W/checkpoints/medrag_v2/final \
+        --test_data ~/W/data/processed/medqa/test.jsonl \
+        --output evaluation/results/finetuned.json
 """
 
 import os
