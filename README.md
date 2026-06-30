@@ -204,6 +204,7 @@ python evaluation/evaluate_rag.py --model_path path/to/checkpoint \
 ### 6. Serve
 
 ```bash
+PYTHONPATH=$(pwd) \
 BASE_MODEL=meta-llama/Llama-3.3-70B-Instruct \
 ADAPTER_PATH=path/to/checkpoint \
 VECTORSTORE=path/to/vectorstore \
