@@ -66,7 +66,7 @@ Notably, Xiong et al. report that RAG *decreases* GPT-4 accuracy (83.97% → 82.
 |---|---|
 | Base model | `meta-llama/Llama-3.3-70B-Instruct` |
 | Fine-tuning | QLoRA 4-bit (NF4) via PEFT + TRL SFTTrainer |
-| Multi-GPU training | DeepSpeed ZeRO-2, 4× NVIDIA L40S 46GB |
+| Multi-GPU training | DeepSpeed ZeRO-2, 4× NVIDIA L40S 48GB |
 | Experiment tracking | Weights & Biases (offline mode) |
 | RAG corpus | `MedRAG/textbooks` (125,847 chunks, 18 medical textbooks) |
 | Embeddings | `BAAI/bge-large-en-v1.5` (1024-dim) |
