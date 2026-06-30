@@ -1,8 +1,8 @@
 """
-Fine-tune Llama 3.1 70B Instruct with QLoRA on MedQA + PubMedQA.
+Fine-tune Llama 3.3 70B Instruct with QLoRA on MedQA-USMLE.
 
 Usage (via SLURM job.sh):
-    torchrun --nproc_per_node=4 train.py --config config.yaml
+    torchrun --nproc_per_node=4 train.py --config config_v2.yaml
 """
 
 import os
@@ -43,7 +43,7 @@ def load_jsonl(path: str) -> list:
 
 
 def format_prompt(example: dict, tokenizer) -> str:
-    """Format as Llama 3.1 chat template."""
+    """Format as Llama 3.3 chat template."""
     messages = [
         {"role": "system", "content": example["instruction"]},
         {"role": "user", "content": example["input"]},

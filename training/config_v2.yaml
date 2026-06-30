@@ -6,7 +6,7 @@ model:
   bnb_4bit_use_double_quant: true
 
 lora:
-  r: 16                    # rank=32 causa OOM con TRL 1.7 entropy computation en 44GB GPUs
+  r: 16                    # rank=32 causa OOM con TRL 1.7 entropy computation en 46GB GPUs
   lora_alpha: 32
   lora_dropout: 0.05
   target_modules:
@@ -28,7 +28,7 @@ training:
   learning_rate: 5e-5               # más conservador que v1 (1e-4)
   lr_scheduler_type: "cosine"
   warmup_ratio: 0.03
-  max_seq_length: 1024              # TRL 1.7 _chunk entropy OOM con 2048 en 44GB GPUs
+  max_seq_length: 1024              # TRL 1.7 _chunk entropy OOM con 2048 en 46GB GPUs
   fp16: false
   bf16: true
   gradient_checkpointing: true
@@ -39,7 +39,7 @@ training:
   load_best_model_at_end: true
   metric_for_best_model: "eval_loss"
   report_to: "wandb"
-  run_name: "llama33-70b-medqa-qlora-r32-v2"
+  run_name: "llama33-70b-medqa-qlora-r16-v2"
 
 paths:
   data_dir: "${HOME}/W/data/processed/medqa_only"

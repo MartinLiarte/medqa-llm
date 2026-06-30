@@ -5,7 +5,6 @@ RUN apt-get update && apt-get install -y python3.11 python3-pip && rm -rf /var/l
 
 WORKDIR /app
 
-COPY requirements.txt .
 RUN pip install --no-cache-dir \
     torch==2.1.0 --index-url https://download.pytorch.org/whl/cu121 && \
     pip install --no-cache-dir \
