@@ -263,14 +263,6 @@ Epoch 3.00 — train_loss: 0.890  (stable, no overfitting)
 
 The model learned the USMLE answer format in < 1 epoch. Stable grad_norm (0.17–0.26) throughout indicates healthy training dynamics. Training time: 4h 18min on 4× L40S.
 
-### Key engineering challenges solved
-
-- **CUDA library mismatch**: bitsandbytes 0.49.2 links against `libnvJitLink.so.13` but the cluster has `.so.12` → created symlink, exported `LD_LIBRARY_PATH`
-- **TRL 1.7.0 API breaking changes**: `DataCollatorForCompletionOnlyLM` removed, `max_seq_length` renamed to `max_length` in `SFTConfig`, `tokenizer=` renamed to `processing_class=` in `SFTTrainer`
-- **HPC disk quotas**: NAS home quota (5GB) and shared /home (14TB) both full → routed model cache to node-local /tmp (336GB) via `HF_HOME`
-- **OOM in backward pass**: TRL 1.7 computes token-level entropy over the full vocabulary (128k tokens) during training — materializes a 128k × seq_len × batch tensor → solved by halving seq_len (2048→1024) and batch (2→1)
-- **W&B on compute nodes without internet**: used `WANDB_MODE=offline`, sync manually with `wandb sync` from login node
-
 ---
 
 ## About
