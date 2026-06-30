@@ -119,7 +119,7 @@ def main():
     print(f"Loading test data from {args.test_data}...")
     examples = load_jsonl(args.test_data)
 
-    # Filter only MedQA examples for accuracy comparison with GPT-4o
+    # Filter only MedQA examples for accuracy comparison with GPT-4
     medqa_examples = [ex for ex in examples if ex.get("source") == "medqa"]
     all_examples = medqa_examples  # primary evaluation on MedQA
 
@@ -191,14 +191,14 @@ def main():
         "skipped": skipped,
         "correct": correct,
         "accuracy": accuracy,
-        "gpt4o_baseline": 0.87,
-        "delta_vs_gpt4o": accuracy - 0.87,
+        "gpt4_baseline_xiong2024": 0.8397,
+        "delta_vs_gpt4": accuracy - 0.8397,
     }
 
     print("\n" + "="*50)
     print(f"ACCURACY: {accuracy:.4f} ({correct}/{total})")
-    print(f"GPT-4o baseline: 0.8700")
-    print(f"Delta: {accuracy - 0.87:+.4f}")
+    print(f"GPT-4 baseline (Xiong et al. ACL 2024): 0.8397")
+    print(f"Delta: {accuracy - 0.8397:+.4f}")
     print(f"Skipped (no answer extracted): {skipped}")
     print("="*50)
 

@@ -169,14 +169,14 @@ def main():
         "skipped": skipped,
         "correct": correct,
         "accuracy": accuracy,
-        "gpt4o_baseline": 0.87,
-        "delta_vs_gpt4o": accuracy - 0.87,
+        "gpt4_baseline_xiong2024": 0.8397,
+        "delta_vs_gpt4": accuracy - 0.8397,
     }
 
     print("\n" + "=" * 50)
     print(f"ACCURACY (RAG top_k={args.top_k}): {accuracy:.4f} ({correct}/{total})")
-    print(f"GPT-4o baseline: 0.8700")
-    print(f"Delta: {accuracy - 0.87:+.4f}")
+    print(f"GPT-4 baseline (Xiong et al. ACL 2024): 0.8397")
+    print(f"Delta: {accuracy - 0.8397:+.4f}")
     print(f"Skipped: {skipped}")
     print("=" * 50)
 

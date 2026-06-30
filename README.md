@@ -133,8 +133,10 @@ medrag/
 │   ├── config_v2.yaml           # Final hyperparameters (lr=5e-5, rank=16)
 │   └── job_train_v2.sh          # SLURM job (4 GPUs, 48h, cola long)
 ├── rag/
+│   ├── __init__.py
 │   └── pipeline.py              # FAISS retriever + prompt augmentation
 ├── serving/
+│   ├── __init__.py
 │   ├── api.py                   # FastAPI REST API (/predict, /predict_rag)
 │   ├── inference.py             # Inference engine (4-bit model + LoRA + RAG)
 │   └── Dockerfile
@@ -234,7 +236,7 @@ Llama 3.3 70B in bfloat16 requires ~140GB of VRAM just for weights — far beyon
 
 1. **4-bit NF4 quantization** (via bitsandbytes): compresses model weights from 16-bit to 4-bit using a Normal Float 4 representation optimized for normally-distributed neural network weights. This reduces the model to ~35GB while preserving most precision during forward/backward passes (compute still happens in bfloat16).
 
-2. **LoRA (Low-Rank Adaptation)**: instead of updating all 70B parameters, we inject trainable rank-16 matrices into every projection layer (`q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`). The base model is frozen; only ~400M parameters are trained. The adapters (396MB) are merged or loaded at inference time.
+2. **LoRA (Low-Rank Adaptation)**: instead of updating all 70B parameters, we inject trainable rank-16 matrices into every projection layer (`q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`). The base model is frozen; only ~400M parameters are trained. The adapters (412MB) are merged or loaded at inference time.
 
 This combination makes it possible to fine-tune a 70B model on 4× 46GB GPUs with an effective batch size of 64.
 
@@ -268,7 +270,7 @@ The model learned the USMLE answer format in < 1 epoch. Stable grad_norm (0.17�
 
 Built by **Martín Liarte** — CS student at UPV (Valencia), specializing in Computing & AI.
 
-Training runs on the UPV DSIC cluster (tensor.dsic.upv.es) with 4× NVIDIA L40S GPUs (48GB VRAM each).
+Training runs on the UPV DSIC cluster (tensor.dsic.upv.es) with 4× NVIDIA L40S GPUs (46GB VRAM each).
 
 [![W&B](https://img.shields.io/badge/Weights_%26_Biases-FFBE00?logo=WeightsAndBiases&logoColor=white)](https://wandb.ai)
 [![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-FFD21E)](https://huggingface.co)

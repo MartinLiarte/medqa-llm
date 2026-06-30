@@ -25,6 +25,7 @@ COPY . .
 #   -v /path/to/checkpoints:/checkpoints
 #   -v /path/to/vectorstore:/vectorstore
 
+ENV PYTHONPATH=/app
 ENV BASE_MODEL=meta-llama/Llama-3.3-70B-Instruct
 ENV ADAPTER_PATH=/checkpoints/medrag_v2/final
 ENV VECTORSTORE=/vectorstore

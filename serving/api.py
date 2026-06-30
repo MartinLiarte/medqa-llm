@@ -7,7 +7,7 @@ Endpoints:
   POST /predict_rag     — answer with RAG (top-k=3 textbook chunks)
 
 Run locally (requires GPU):
-  uvicorn serving.api:app --host 0.0.0.0 --port 8000
+  PYTHONPATH=$(pwd) uvicorn serving.api:app --host 0.0.0.0 --port 8000
 
 Environment variables:
   BASE_MODEL      HuggingFace model ID (default: meta-llama/Llama-3.3-70B-Instruct)
