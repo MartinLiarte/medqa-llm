@@ -40,28 +40,21 @@ Notably, Xiong et al. report that RAG *decreases* GPT-4 accuracy (83.97% → 82.
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                                                          │
-│  MedQA-USMLE + PubMedQA                                  │
-│         │                                                │
-│         ▼                                                │
-│  [Preprocessing] ────────► [FAISS Vector Store]          │
-│         │                  BAAI/bge-large-en-v1.5        │
+│  MedQA-USMLE (9,160 train)   MedRAG/textbooks            │
+│         │                    (125,847 chunks)            │
 │         ▼                         │                      │
-│  [QLoRA Fine-tuning]              │ retrieval            │
-│  Llama 3.3 70B                    │                      │
-│  4× NVIDIA L40S (48GB)            │                      │
-│  DeepSpeed ZeRO-2                 │                      │
+│  [QLoRA Fine-tuning]         [BGE-large Embeddings]      │
+│  Llama 3.3 70B               BAAI/bge-large-en-v1.5      │
+│  4× NVIDIA L40S (46GB)            │                      │
+│  DeepSpeed ZeRO-2            [FAISS Index]               │
 │         │                         │                      │
-│         ▼                         ▼                      │
+│         ▼                         │ top-k retrieval      │
 │  [Fine-tuned Model] ◄──── [RAG Pipeline]                 │
-│         │                  LangChain                     │
+│         │                  FAISS + SentenceTransformers  │
 │         ▼                                                │
-│  [vLLM Serving]                                          │
-│         │                                                │
-│         ▼                                                │
-│  [FastAPI REST API] ──► [RAGAS Evaluation]               │
-│         │                     │                          │
-│         ▼                     ▼                          │
-│  [HuggingFace Spaces]   [vs GPT-4o baseline]             │
+│  [FastAPI REST API]                                      │
+│  /predict      — fine-tuned model only                   │
+│  /predict_rag  — fine-tuned model + RAG                  │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -72,30 +65,27 @@ Notably, Xiong et al. report that RAG *decreases* GPT-4 accuracy (83.97% → 82.
 | Component | Technology |
 |---|---|
 | Base model | `meta-llama/Llama-3.3-70B-Instruct` |
-| Fine-tuning | QLoRA 4-bit (nf4) via PEFT + SFTTrainer |
-| Multi-GPU training | DeepSpeed ZeRO-2, 4× NVIDIA L40S 48GB |
-| Experiment tracking | Weights & Biases |
-| Vector store | FAISS-GPU |
-| Embeddings | `BAAI/bge-large-en-v1.5` |
-| RAG framework | LangChain |
-| Evaluation | RAGAS + custom accuracy metrics |
-| Baseline | GPT-4o via OpenAI API |
-| Serving | vLLM + FastAPI |
-| Deployment | HuggingFace Spaces |
+| Fine-tuning | QLoRA 4-bit (NF4) via PEFT + TRL SFTTrainer |
+| Multi-GPU training | DeepSpeed ZeRO-2, 4× NVIDIA L40S 46GB |
+| Experiment tracking | Weights & Biases (offline mode) |
+| RAG corpus | `MedRAG/textbooks` (125,847 chunks, 18 medical textbooks) |
+| Embeddings | `BAAI/bge-large-en-v1.5` (1024-dim) |
+| Vector store | FAISS IndexFlatIP |
+| Serving | FastAPI + uvicorn |
 
 ---
 
 ## Dataset
 
-| Dataset | Size | Task |
+| Dataset | Role | Size |
 |---|---|---|
-| [MedQA-USMLE](https://huggingface.co/datasets/GBaker/MedQA-USMLE-4-options) | 10,178 train / 1,273 test | Multiple-choice medical questions (USMLE Step 1/2/3) |
-| [PubMedQA](https://huggingface.co/datasets/qiaojin/PubMedQA) | 1,000 labeled | Biomedical yes/no/maybe QA from PubMed abstracts |
+| [MedQA-USMLE](https://huggingface.co/datasets/GBaker/MedQA-USMLE-4-options) | Fine-tuning + evaluation | 10,178 train / 1,273 test |
+| [MedRAG/textbooks](https://huggingface.co/datasets/MedRAG/textbooks) | RAG corpus (not for training) | 125,847 chunks from 18 textbooks |
 
-**Combined training splits:**
-- Train: 9,960 examples
-- Validation: 1,118 examples
-- Test: 1,373 examples (held out until final evaluation)
+**Fine-tuning splits (MedQA only, 90/10 split):**
+- Train: 9,160 examples
+- Validation: 1,018 examples
+- Test: 1,273 examples (held out — never seen during training)
 
 ---
 
@@ -134,29 +124,24 @@ rag:
 ```
 medrag/
 ├── data/
-│   ├── download.py              # Download MedQA + PubMedQA from HuggingFace
+│   ├── download.py              # Download MedQA from HuggingFace
 │   ├── preprocess.py            # Format for instruction tuning (Llama chat template)
-│   └── build_vectorstore.py     # Build FAISS index with BGE embeddings
+│   ├── build_vectorstore.py     # Build FAISS index from MedRAG/textbooks with BGE
+│   └── job_build_vectorstore.sh # SLURM job (1 GPU, ~30min)
 ├── training/
-│   ├── train.py                 # QLoRA fine-tuning with SFTTrainer
-│   ├── config.yaml              # Hyperparameters
-│   └── job_train.sh             # SLURM job script (4 GPUs, DeepSpeed)
+│   ├── train.py                 # QLoRA fine-tuning with SFTTrainer + DeepSpeed
+│   ├── config_v2.yaml           # Final hyperparameters (lr=5e-5, rank=16)
+│   └── job_train_v2.sh          # SLURM job (4 GPUs, 48h, cola long)
 ├── rag/
-│   ├── pipeline.py              # LangChain RAG pipeline
-│   └── retriever.py             # FAISS retrieval logic
+│   └── pipeline.py              # FAISS retriever + prompt augmentation
 ├── serving/
-│   ├── api.py                   # FastAPI application
-│   ├── inference.py             # vLLM inference wrapper
+│   ├── api.py                   # FastAPI REST API (/predict, /predict_rag)
+│   ├── inference.py             # Inference engine (4-bit model + LoRA + RAG)
 │   └── Dockerfile
-├── evaluation/
-│   ├── evaluate.py              # RAGAS evaluation
-│   ├── baseline_gpt4o.py        # GPT-4o baseline
-│   ├── metrics.py               # Accuracy, F1, RAGAS scores
-│   └── results/                 # Experiment results (JSON)
-└── notebooks/
-    ├── 01_data_exploration.ipynb
-    ├── 02_training_analysis.ipynb
-    └── 03_evaluation_results.ipynb
+└── evaluation/
+    ├── evaluate.py              # Accuracy evaluation (base model or fine-tuned)
+    ├── evaluate_rag.py          # Accuracy evaluation with RAG augmentation
+    └── results/                 # JSON results for each experiment run
 ```
 
 ---
@@ -166,8 +151,8 @@ medrag/
 ### 1. Setup
 
 ```bash
-git clone https://github.com/martinliarte/medrag.git
-cd medrag
+git clone https://github.com/MartinLiarte/medqa-llm.git
+cd medqa-llm
 conda env create -f environment.yml
 conda activate medrag
 ```
@@ -179,46 +164,64 @@ python data/download.py
 python data/preprocess.py
 ```
 
-### 3. Build vector store
+### 3. Build vector store (requires GPU, ~30min)
 
 ```bash
-python data/build_vectorstore.py
+# With SLURM
+sbatch data/job_build_vectorstore.sh
+
+# Without SLURM
+python data/build_vectorstore.py --corpus textbooks
 ```
 
 ### 4. Fine-tune (requires 4× NVIDIA L40S or equivalent)
 
 ```bash
-# With SLURM
-sbatch training/job_train.sh
+# With SLURM (recommended)
+sbatch training/job_train_v2.sh
 
-# Without SLURM (single GPU, for testing)
-python training/train.py --config training/config.yaml
+# Without SLURM
+torchrun --nproc_per_node=4 training/train.py --config training/config_v2.yaml
 ```
 
 ### 5. Evaluate
 
 ```bash
-python evaluation/evaluate.py --model_path path/to/checkpoint
-python evaluation/baseline_gpt4o.py  # requires OPENAI_API_KEY
+# Base model (no fine-tuning)
+python evaluation/evaluate.py --no_lora \
+    --test_data path/to/test.jsonl --output results/base.json
+
+# Fine-tuned model
+python evaluation/evaluate.py --model_path path/to/checkpoint \
+    --test_data path/to/test.jsonl --output results/finetuned.json
+
+# Fine-tuned + RAG
+python evaluation/evaluate_rag.py --model_path path/to/checkpoint \
+    --vectorstore path/to/vectorstore --top_k 3 \
+    --test_data path/to/test.jsonl --output results/rag.json
 ```
 
 ### 6. Serve
 
 ```bash
-docker build -t medrag-api ./serving
-docker run -p 8000:8000 medrag-api
+BASE_MODEL=meta-llama/Llama-3.3-70B-Instruct \
+ADAPTER_PATH=path/to/checkpoint \
+VECTORSTORE=path/to/vectorstore \
+uvicorn serving.api:app --host 0.0.0.0 --port 8000
 # API docs at http://localhost:8000/docs
 ```
 
 ---
 
-## Evaluation Metrics
+## Evaluation
 
-- **Accuracy**: % of correct answers on the MedQA-USMLE test set (1,273 questions). Primary metric.
-- **RAGAS Faithfulness**: Are answers grounded in retrieved context? Target > 0.85.
-- **RAGAS Answer Relevancy**: Is the answer relevant to the question? Target > 0.80.
-- **RAGAS Context Precision**: Quality of retrieved context. Target > 0.75.
-- **API P95 Latency**: 95th percentile response time. Target < 3s.
+Primary metric: **accuracy** on the MedQA-US test set (1,273 questions, 4-option format, greedy decoding). Three configurations evaluated:
+
+1. Base model — `evaluate.py --no_lora`
+2. Fine-tuned — `evaluate.py --model_path ...`
+3. Fine-tuned + RAG — `evaluate_rag.py --model_path ... --vectorstore ...`
+
+Results saved as JSON in `evaluation/results/`.
 
 ---
 
@@ -232,22 +235,23 @@ Llama 3.3 70B in bfloat16 requires ~140GB of VRAM just for weights — far beyon
 
 2. **LoRA (Low-Rank Adaptation)**: instead of updating all 70B parameters, we inject trainable rank-16 matrices into every projection layer (`q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj`). The base model is frozen; only ~400M parameters are trained. The adapters (396MB) are merged or loaded at inference time.
 
-This combination makes it possible to fine-tune a 70B model on 4× 44GB GPUs with an effective batch size of 64.
+This combination makes it possible to fine-tune a 70B model on 4× 46GB GPUs with an effective batch size of 64.
 
 ### Why DeepSpeed ZeRO-2?
 
 Even with 4-bit weights, optimizer states (Adam momentum + variance) for 400M trainable parameters in fp32 take ~3.2GB per GPU without sharding. ZeRO-2 (Zero Redundancy Optimizer stage 2) partitions these optimizer states and gradients across all 4 GPUs, reducing per-GPU memory by ~4×. This is why we can fit batch=1 × grad_accum=16 without OOM.
 
-### Training convergence
+### Training convergence (v2 — final model)
 
 ```
-Epoch 0.06 — loss: 2.159, token_accuracy: 61.8%  (warmup phase)
-Epoch 0.13 — loss: 1.244, token_accuracy: 73.5%  (rapid learning)
-Epoch 1.00 — eval_loss: 0.872, eval_token_accuracy: 77.6%
-Epoch 3.00 — train_loss: 0.897  (stable, no overfitting)
+Epoch 0.21 — loss: 1.139, token_accuracy: 75.3%  (warmup phase)
+Epoch 0.77 — loss: 0.897, token_accuracy: 78.0%  (rapid learning)
+Epoch 1.46 — loss: 0.821, token_accuracy: 78.8%
+Epoch 2.78 — eval_loss: 0.826, eval_token_accuracy: 78.7%
+Epoch 3.00 — train_loss: 0.890  (stable, no overfitting)
 ```
 
-The model learned the USMLE answer format in < 1 epoch. Stable grad_norm (0.12–0.18) throughout indicates healthy training dynamics.
+The model learned the USMLE answer format in < 1 epoch. Stable grad_norm (0.17–0.26) throughout indicates healthy training dynamics. Training time: 4h 18min on 4× L40S.
 
 ### Key engineering challenges solved
 
