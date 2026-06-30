@@ -123,6 +123,8 @@ rag:
 
 ```
 medrag/
+├── environment.yml              # Conda environment (Python 3.11, CUDA 12.1)
+├── requirements.txt             # Pip dependencies
 ├── data/
 │   ├── download.py              # Download MedQA from HuggingFace
 │   ├── preprocess.py            # Format for instruction tuning (Llama chat template)
