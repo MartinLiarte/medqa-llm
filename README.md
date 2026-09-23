@@ -245,7 +245,7 @@ Results saved as JSON in `evaluation/results/`.
 
 ### Why QLoRA over full fine-tuning?
 
-Llama 3.3 70B in bfloat16 requires ~140GB of VRAM just for weights — far beyond what a single GPU can hold. QLoRA solves this with two techniques stacked together:
+Llama 3.3 70B in bfloat16 requires ~140GB of VRAM just for weights — far beyond what our GPUs can hold. QLoRA solves this with two techniques stacked together:
 
 1. **4-bit NF4 quantization** (via bitsandbytes): compresses model weights from 16-bit to 4-bit using a Normal Float 4 representation optimized for normally-distributed neural network weights. This reduces the model to ~35GB while preserving most precision during forward/backward passes (compute still happens in bfloat16).
 
